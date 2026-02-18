@@ -9,6 +9,8 @@ import ResourcesPage from './pages/ResourcesPage';
 import ProfilePage from './pages/ProfilePage';
 import JobAnalysisPage from './pages/JobAnalysisPage';
 import AnalysisResultPage from './pages/AnalysisResultPage';
+import TestChecklistPage from './pages/TestChecklistPage';
+import ShipPage from './pages/ShipPage';
 
 function App() {
   return (
@@ -27,6 +29,10 @@ function App() {
           <Route path="resources" element={<ResourcesPage />} />
           <Route path="profile" element={<ProfilePage />} />
         </Route>
+
+        {/* Verification Routes */}
+        <Route path="/prp/07-test" element={<TestChecklistPage />} />
+        <Route path="/prp/08-ship" element={<ShipPage />} />
 
         {/* Catch all - redirect to landing */}
         <Route path="*" element={<Navigate to="/" replace />} />

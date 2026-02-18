@@ -16,6 +16,11 @@ const extractSkills = (text) => {
     const foundSkills = {};
     let totalSkillsFound = 0;
 
+    // Initialize all keys with empty arrays to enforce schema
+    Object.keys(SKILL_KEYWORDS).forEach(key => {
+        foundSkills[key] = [];
+    });
+
     for (const [category, skills] of Object.entries(SKILL_KEYWORDS)) {
         const matches = skills.filter(skill => textLower.includes(skill.toLowerCase()));
         if (matches.length > 0) {
@@ -36,7 +41,7 @@ const calculateScore = (text, skills, company, role) => {
     let score = 35; // Base score
 
     // +5 per detected category present (max 30)
-    const categoryCount = Object.keys(skills).filter(k => k !== "General").length;
+    const categoryCount = Object.keys(skills).filter(k => k !== "General" && skills[k].length > 0).length;
     score += Math.min(30, categoryCount * 5);
 
     // +10 if company name provided
@@ -193,6 +198,12 @@ const generateSmartRounds = (companyIntel, skills) => {
 
 export const analyzeJobDescription = (text, company, role) => {
     const skills = extractSkills(text);
+
+    // Default fallback if no technical skills found (check flattened values)
+    if (Object.values(skills).every(arr => arr.length === 0)) {
+        skills["General"] = ["Communication", "Problem Solving", "Basic Coding", "Projects"];
+    }
+
     const score = calculateScore(text, skills, company, role);
     const plan = generatePlan(skills);
     const questions = generateQuestions(skills);
@@ -202,18 +213,17 @@ export const analyzeJobDescription = (text, company, role) => {
     // Generate Rounds (replacing old static checklist)
     const smartRounds = generateSmartRounds(companyIntel, skills);
 
-    // Map smart rounds to old checklist format for backward compatibility if needed, 
-    // but better to use new structure. Let's keep old checklist for export, 
-    // but add new `rounds` property.
+    // Map smart rounds to old checklist format for backward compatibility
     const checklist = {};
     smartRounds.forEach(r => checklist[r.title] = r.details);
 
     return {
         id: crypto.randomUUID(),
         createdAt: new Date().toISOString(),
-        company,
-        role,
-        jdText: text,
+        updatedAt: new Date().toISOString(),
+        company: company || "",
+        role: role || "",
+        jdText: text || "",
         extractedSkills: skills,
         plan,
         questions,
@@ -238,7 +248,7 @@ export const saveAnalysis = (data) => {
         let updatedHistory;
         if (existingIndex >= 0) {
             updatedHistory = [...history];
-            updatedHistory[existingIndex] = data;
+            updatedHistory[existingIndex] = { ...data, updatedAt: new Date().toISOString() };
         } else {
             updatedHistory = [data, ...history].slice(0, 20); // Keep last 20
         }
@@ -258,7 +268,11 @@ export const updateAnalysis = (id, updates) => {
 
         if (index === -1) return null;
 
-        const updatedItem = { ...history[index], ...updates };
+        const updatedItem = {
+            ...history[index],
+            ...updates,
+            updatedAt: new Date().toISOString()
+        };
         history[index] = updatedItem;
 
         localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
@@ -272,9 +286,19 @@ export const updateAnalysis = (id, updates) => {
 export const getHistory = () => {
     try {
         const data = localStorage.getItem(HISTORY_KEY);
-        return data ? JSON.parse(data) : [];
+        if (!data) return [];
+
+        const parsed = JSON.parse(data);
+        if (!Array.isArray(parsed)) return [];
+
+        // Strict Filter: Remove corrupt items
+        return parsed.filter(item =>
+            item &&
+            item.id &&
+            typeof item.readinessScore === 'number'
+        );
     } catch (e) {
-        console.error("Failed to get history", e);
+        console.error("Failed to get history (corrupt data cleaned)", e);
         return [];
     }
 };
