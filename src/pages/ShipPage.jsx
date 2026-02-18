@@ -66,17 +66,25 @@ const ShipPage = () => {
                 <div className="p-6 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 max-w-lg mx-auto">
                     <h3 className="text-lg font-semibold mb-2">Build Status: <span className="text-green-400">Stable</span></h3>
                     <p className="text-sm text-gray-300">
-                        Version 1.2.0 • Company Intel Enabled • Strict Schema Enforced
+                        Version 1.3.0 • Company Intel Enabled • Strict Schema Enforced
                     </p>
                 </div>
 
-                <Button
-                    onClick={() => window.location.hash = "#/"}
-                    variant="outline"
-                    className="border-white/30 text-white hover:bg-white/10"
-                >
-                    Back to Home
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Button
+                        onClick={() => window.location.hash = "#/"}
+                        variant="outline"
+                        className="border-white/30 text-white hover:bg-white/10"
+                    >
+                        Back to Home
+                    </Button>
+                    <Button
+                        onClick={() => window.location.hash = "#/prp/proof"}
+                        className="bg-green-500 hover:bg-green-600 text-white font-bold px-8"
+                    >
+                        Proceed to Final Submission
+                    </Button>
+                </div>
             </div>
         </div>
     );
