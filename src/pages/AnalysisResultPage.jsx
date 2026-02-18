@@ -336,29 +336,30 @@ ${data.questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
                                 </div>
                             )}
                         </div>
+                    </div>
 
-                        {/* Questions */}
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                                <ClipboardList className="w-6 h-6 text-orange-600" /> Likely Interview Questions
-                            </h2>
-                            <Card>
-                                <CardContent className="p-0">
-                                    <ul className="divide-y divide-gray-100">
-                                        {data.questions.map((q, idx) => (
-                                            <li key={idx} className="p-4 flex gap-3 hover:bg-gray-50 transition-colors">
-                                                <span className="text-orange-500 font-bold text-sm">Q{idx + 1}.</span>
-                                                <span className="text-gray-700 text-sm font-medium">{q}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </CardContent>
-                            </Card>
-                        </div>
+                    {/* Questions */}
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <ClipboardList className="w-6 h-6 text-orange-600" /> Likely Interview Questions
+                        </h2>
+                        <Card>
+                            <CardContent className="p-0">
+                                <ul className="divide-y divide-gray-100">
+                                    {data.questions.map((q, idx) => (
+                                        <li key={idx} className="p-4 flex gap-3 hover:bg-gray-50 transition-colors">
+                                            <span className="text-orange-500 font-bold text-sm">Q{idx + 1}.</span>
+                                            <span className="text-gray-700 text-sm font-medium">{q}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </div>
-            );
+        </div>
+    );
 };
 
-            export default AnalysisResultPage;
+export default AnalysisResultPage;
