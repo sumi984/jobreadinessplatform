@@ -167,7 +167,9 @@ export const analyzeJobDescription = (text, company, role) => {
         plan,
         questions,
         checklist,
-        readinessScore: score
+        readinessScore: score,
+        baseScore: score, // Store initial score
+        skillConfidenceMap: {} // Init empty map for skill toggles
     };
 };
 
@@ -177,12 +179,40 @@ const HISTORY_KEY = 'jd_analyzer_history';
 export const saveAnalysis = (data) => {
     try {
         const history = getHistory();
-        const updatedHistory = [data, ...history].slice(0, 20); // Keep last 20
+        // Check if exists, update if so (though usually this is for new items)
+        const existingIndex = history.findIndex(h => h.id === data.id);
+
+        let updatedHistory;
+        if (existingIndex >= 0) {
+            updatedHistory = [...history];
+            updatedHistory[existingIndex] = data;
+        } else {
+            updatedHistory = [data, ...history].slice(0, 20); // Keep last 20
+        }
+
         localStorage.setItem(HISTORY_KEY, JSON.stringify(updatedHistory));
         return true;
     } catch (e) {
         console.error("Failed to save analysis", e);
         return false;
+    }
+};
+
+export const updateAnalysis = (id, updates) => {
+    try {
+        const history = getHistory();
+        const index = history.findIndex(item => item.id === id);
+
+        if (index === -1) return null;
+
+        const updatedItem = { ...history[index], ...updates };
+        history[index] = updatedItem;
+
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+        return updatedItem;
+    } catch (e) {
+        console.error("Failed to update analysis", e);
+        return null;
     }
 };
 

@@ -1,27 +1,113 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getAnalysisById } from '../lib/analyzer';
+import { getAnalysisById, updateAnalysis } from '../lib/analyzer';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Progress } from '../components/ui/Progress';
-import { ArrowLeft, CheckCircle2, Calendar, ClipboardList, BrainCircuit, Target } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Calendar, ClipboardList, BrainCircuit, Target, Download, Copy, PlayCircle } from 'lucide-react';
+import { cn } from '../lib/utils';
 
 const AnalysisResultPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [data, setData] = useState(null);
+    const [skillState, setSkillState] = useState({}); // { skill: 'know' | 'practice' }
 
     useEffect(() => {
         if (id) {
             const result = getAnalysisById(id);
             if (result) {
                 setData(result);
+                setSkillState(result.skillConfidenceMap || {});
             } else {
                 navigate('/app/analysis'); // Redirect if not found
             }
         }
     }, [id, navigate]);
+
+    // Handle Skill Toggle
+    const toggleSkill = (skill) => {
+        setSkillState(prev => {
+            const newState = { ...prev };
+            // Default is 'practice' (implied if not set), so toggle to 'know', or back to 'practice'
+            if (newState[skill] === 'know') {
+                newState[skill] = 'practice';
+            } else {
+                newState[skill] = 'know';
+            }
+            return newState;
+        });
+    };
+
+    // Calculate Live Score
+    const calculateLiveScore = useCallback(() => {
+        if (!data) return 0;
+        let score = data.baseScore || data.readinessScore; // Start with base
+
+        Object.values(skillState).forEach(status => {
+            if (status === 'know') score += 2;
+            if (status === 'practice') score -= 2;
+        });
+
+        return Math.min(100, Math.max(0, score));
+    }, [data, skillState]);
+
+    const liveScore = calculateLiveScore();
+
+    // Persist Changes (Debounced ideally, but simple effect here works for local updates)
+    useEffect(() => {
+        if (data && id) {
+            const score = calculateLiveScore();
+            updateAnalysis(id, {
+                skillConfidenceMap: skillState,
+                readinessScore: score
+            });
+        }
+    }, [skillState, calculateLiveScore, id, data]);
+
+
+    // Helper to get weak skills for Action box
+    const getWeakSkills = () => {
+        if (!data) return [];
+        const allSkills = Object.values(data.extractedSkills).flat();
+        // Skills explicitly marked practice OR not marked yet (default)
+        return allSkills.filter(s => skillState[s] !== 'know').slice(0, 3);
+    };
+
+    // Export Handlers
+    const copyToClipboard = (text, label) => {
+        navigator.clipboard.writeText(text);
+        alert(`${label} copied to clipboard!`);
+    };
+
+    const handleDownload = () => {
+        const text = `
+JOB ANALYSIS REPORT
+Role: ${data.role}
+Company: ${data.company}
+Readiness Score: ${liveScore}/100
+Date: ${new Date().toLocaleDateString()}
+
+--- 7-DAY PLAN ---
+${data.plan.map(d => `${d.day}: ${d.title}\n${d.tasks.map(t => ` - ${t}`).join('\n')}`).join('\n\n')}
+
+--- CHECKLIST ---
+${Object.entries(data.checklist).map(([r, items]) => `${r}:\n${items.map(i => ` - ${i}`).join('\n')}`).join('\n\n')}
+
+--- QUESTIONS ---
+${data.questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
+        `;
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Analysis_${data.company}_${data.role}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
+
 
     if (!data) return <div className="p-10 text-center">Loading analysis...</div>;
 
@@ -33,14 +119,30 @@ const AnalysisResultPage = () => {
 
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => navigate('/app/analysis')}>
-                    <ArrowLeft className="w-5 h-5" />
-                </Button>
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Analysis Result</h1>
-                    <p className="text-gray-500">{data.role} at {data.company}</p>
+            {/* Header & Export Toolbar */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="flex items-center gap-4">
+                    <Button variant="ghost" size="icon" onClick={() => navigate('/app/analysis')}>
+                        <ArrowLeft className="w-5 h-5" />
+                    </Button>
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">Analysis Result</h1>
+                        <p className="text-gray-500">{data.role} at {data.company}</p>
+                    </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" size="sm" onClick={() => copyToClipboard(
+                        data.plan.map(d => `${d.day}: ${d.tasks.join(', ')}`).join('\n'), "7-Day Plan"
+                    )}>
+                        <Copy className="w-4 h-4 mr-2" /> Plan
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => copyToClipboard(data.questions.join('\n'), "Questions")}>
+                        <Copy className="w-4 h-4 mr-2" /> Questions
+                    </Button>
+                    <Button variant="default" size="sm" onClick={handleDownload} className="bg-indigo-600 hover:bg-indigo-700">
+                        <Download className="w-4 h-4 mr-2" /> Download Report
+                    </Button>
                 </div>
             </div>
 
@@ -50,40 +152,53 @@ const AnalysisResultPage = () => {
                 <Card className="col-span-1 border-t-4 border-t-indigo-500 shadow-md">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                            <Target className="w-5 h-5 text-indigo-500" /> Readiness Potential
+                            <Target className="w-5 h-5 text-indigo-500" /> Live Readiness
                         </CardTitle>
-                        <CardDescription>Based on JD match & completeness</CardDescription>
+                        <CardDescription>Updates as you toggle skills</CardDescription>
                     </CardHeader>
                     <CardContent className="flex flex-col items-center justify-center py-6">
-                        <div className={`text-6xl font-bold ${getScoreColor(data.readinessScore)}`}>
-                            {data.readinessScore}
+                        <div className={`text-6xl font-bold transition-all duration-300 ${getScoreColor(liveScore)}`}>
+                            {liveScore}
                         </div>
                         <span className="text-sm font-medium text-gray-500 mt-2 uppercase tracking-widest">Score / 100</span>
                     </CardContent>
                 </Card>
 
-                {/* Skills Detected */}
+                {/* Skills Interactive */}
                 <Card className="col-span-1 md:col-span-2 border-t-4 border-t-emerald-500 shadow-md">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                            <BrainCircuit className="w-5 h-5 text-emerald-500" /> Detected Key Skills
+                            <BrainCircuit className="w-5 h-5 text-emerald-500" /> Key Skills (Interactive)
                         </CardTitle>
-                        <CardDescription>Technology stack extracted from the job description</CardDescription>
+                        <CardDescription>Click tags to mark as <strong>Know</strong> (Green) or <strong>Need Practice</strong> (Gray). Score updates automatically.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         {Object.keys(data.extractedSkills).length === 0 ? (
-                            <p className="text-gray-500 italic">No specific technical skills found suitable for auto-extraction.</p>
+                            <p className="text-gray-500 italic">No specific technical skills found.</p>
                         ) : (
                             <div className="space-y-4">
                                 {Object.entries(data.extractedSkills).map(([category, skills]) => (
                                     <div key={category}>
                                         <h4 className="text-sm font-semibold text-gray-700 mb-2">{category}</h4>
                                         <div className="flex flex-wrap gap-2">
-                                            {skills.map((skill, idx) => (
-                                                <Badge key={idx} className="bg-emerald-50 text-emerald-700 border-none px-3 py-1 text-sm font-medium">
-                                                    {skill}
-                                                </Badge>
-                                            ))}
+                                            {skills.map((skill, idx) => {
+                                                const isKnown = skillState[skill] === 'know';
+                                                return (
+                                                    <Badge
+                                                        key={idx}
+                                                        onClick={() => toggleSkill(skill)}
+                                                        className={cn(
+                                                            "cursor-pointer px-3 py-1 text-sm font-medium transition-all select-none border",
+                                                            isKnown
+                                                                ? "bg-green-100 text-green-700 border-green-200 hover:bg-green-200"
+                                                                : "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200"
+                                                        )}
+                                                    >
+                                                        {isKnown ? <CheckCircle2 className="w-3 h-3 mr-1" /> : null}
+                                                        {skill}
+                                                    </Badge>
+                                                )
+                                            })}
                                         </div>
                                     </div>
                                 ))}
@@ -92,6 +207,23 @@ const AnalysisResultPage = () => {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Action Box */}
+            <Card className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white border-none shadow-lg">
+                <div className="p-6 flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div>
+                        <h3 className="text-xl font-bold flex items-center gap-2 mb-2">
+                            <PlayCircle className="w-6 h-6" /> Recommended Next Action
+                        </h3>
+                        <p className="text-blue-100 mb-1">
+                            Focus on your weak areas: <strong>{getWeakSkills().join(', ') || 'General Review'}</strong>.
+                        </p>
+                    </div>
+                    <Button variant="secondary" className="whitespace-nowrap font-bold text-indigo-700 hover:bg-blue-50">
+                        Start Day 1 Plan
+                    </Button>
+                </div>
+            </Card>
 
             {/* Preparation Roadmap */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
