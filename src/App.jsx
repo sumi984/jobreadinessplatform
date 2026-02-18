@@ -2,7 +2,11 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import DashboardLayout from './layouts/DashboardLayout';
-import { Dashboard, Practice, Assessments, Resources, Profile } from './pages/DashboardPages';
+import { Dashboard } from './pages/DashboardPages';
+import PracticePage from './pages/PracticePage';
+import AssessmentsPage from './pages/AssessmentsPage';
+import ResourcesPage from './pages/ResourcesPage';
+import ProfilePage from './pages/ProfilePage';
 
 function App() {
   return (
@@ -14,10 +18,10 @@ function App() {
         {/* Protected Dashboard Routes */}
         <Route path="/app" element={<DashboardLayout />}>
           <Route index element={<Dashboard />} />
-          <Route path="practice" element={<Practice />} />
-          <Route path="assessments" element={<Assessments />} />
-          <Route path="resources" element={<Resources />} />
-          <Route path="profile" element={<Profile />} />
+          <Route path="practice" element={<PracticePage />} />
+          <Route path="assessments" element={<AssessmentsPage />} />
+          <Route path="resources" element={<ResourcesPage />} />
+          <Route path="profile" element={<ProfilePage />} />
         </Route>
 
         {/* Catch all - redirect to landing */}

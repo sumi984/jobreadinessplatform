@@ -1,49 +1,37 @@
 import React from 'react';
+import { cn } from '../../lib/utils';
 
-const Button = ({ children, variant = 'primary', className = '', ...props }) => {
-  const baseStyles = {
-    padding: '12px 24px',
-    borderRadius: '8px',
-    border: 'none',
-    fontSize: '16px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease-in-out',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    fontFamily: 'var(--font-sans)',
+const Button = React.forwardRef(({ className, variant = "default", size = "default", ...props }, ref) => {
+  const variants = {
+    default: "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm",
+    destructive: "bg-red-500 text-white hover:bg-red-600 shadow-sm",
+    outline: "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground",
+    secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+    ghost: "hover:bg-accent hover:text-accent-foreground",
+    link: "text-primary underline-offset-4 hover:underline",
   };
 
-  const variants = {
-    primary: {
-      backgroundColor: 'var(--color-accent)',
-      color: 'white',
-      border: '1px solid var(--color-accent)',
-    },
-    secondary: {
-      backgroundColor: 'transparent',
-      color: 'var(--color-text)',
-      border: '1px solid var(--color-border)',
-    },
-    ghost: {
-        backgroundColor: 'transparent',
-        color: 'var(--color-text)',
-        border: 'none',
-        padding: '8px 16px',
-    }
+  const sizes = {
+    default: "h-9 px-4 py-2",
+    sm: "h-8 rounded-md px-3 text-xs",
+    lg: "h-10 rounded-md px-8",
+    icon: "h-9 w-9",
   };
 
   return (
     <button
-      style={{ ...baseStyles, ...variants[variant] }}
-      className={className}
+      ref={ref}
+      className={cn(
+        "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+        variants[variant],
+        sizes[size],
+        className
+      )}
       {...props}
-    >
-      {children}
-    </button>
+    />
   );
-};
+});
+Button.displayName = "Button";
 
+export { Button };
 export default Button;

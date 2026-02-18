@@ -1,41 +1,22 @@
 import React from 'react';
+import { cn } from '../../lib/utils';
 
-const Badge = ({ status = 'neutral', children }) => {
-    const styles = {
-        display: 'inline-flex',
-        alignItems: 'center',
-        padding: '4px 12px',
-        borderRadius: '100px',
-        fontSize: '12px',
-        fontWeight: '600',
-        textTransform: 'uppercase',
-        letterSpacing: '0.05em',
-    };
-
+const Badge = ({ className, variant = "default", ...props }) => {
     const variants = {
-        neutral: {
-            backgroundColor: '#E0E0E0',
-            color: '#555',
-        },
-        progress: {
-            backgroundColor: '#E3F2FD',
-            color: '#1565C0',
-        },
-        success: {
-            backgroundColor: '#E8F5E9',
-            color: 'var(--color-success)',
-        },
-        warning: {
-            backgroundColor: '#FFF8E1',
-            color: 'var(--color-warning)',
-        }
+        default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+        secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
+        outline: "text-foreground",
     };
 
     return (
-        <span style={{ ...styles, ...variants[status] }}>
-            {children}
-        </span>
+        <div className={cn(
+            "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+            variants[variant] || variants.default,
+            className
+        )} {...props} />
     );
 };
 
+export { Badge };
 export default Badge;
