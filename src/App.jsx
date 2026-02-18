@@ -11,6 +11,7 @@ import JobAnalysisPage from './pages/JobAnalysisPage';
 import AnalysisResultPage from './pages/AnalysisResultPage';
 import TestChecklistPage from './pages/TestChecklistPage';
 import ShipPage from './pages/ShipPage';
+import ProofPage from './pages/ProofPage';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
         {/* Verification Routes */}
         <Route path="/prp/07-test" element={<TestChecklistPage />} />
         <Route path="/prp/08-ship" element={<ShipPage />} />
+        <Route path="/prp/proof" element={<ProofPage />} />
 
         {/* Catch all - redirect to landing */}
         <Route path="*" element={<Navigate to="/" replace />} />
