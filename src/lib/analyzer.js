@@ -120,34 +120,75 @@ const generateQuestions = (skills) => {
     return questions.slice(0, 10);
 };
 
-// Helper: Generate Checklist
-const generateChecklist = (skills) => {
+// Helper: Get Company Intel
+const KNOWN_ENTERPRISES = [
+    "Google", "Microsoft", "Amazon", "Apple", "Meta", "Facebook", "Netflix",
+    "TCS", "Infosys", "Wipro", "Accenture", "Cognizant", "HCL", "Capgemini",
+    "IBM", "Oracle", "SAP", "Cisco", "Intel", "Adobe", "Salesforce", "Uber",
+    "LinkedIn", "Twitter", "X", "Airbnb", "Flipkart", "Myntra", "Swiggy", "Zomato",
+    "Paytm", "PhonePe", "Razorpay", "Ola", "Jio", "Reliance", "Tata"
+];
+
+const getCompanyIntel = (company) => {
+    const isEnterprise = KNOWN_ENTERPRISES.some(e => company.toLowerCase().includes(e.toLowerCase()));
+
     return {
-        "Round 1: Aptitude & Basics": [
-            "Quantitative Aptitude (Time & Work, PL, Speed)",
-            "Logical Reasoning (Puzzles, Series)",
-            "Verbal Ability (Communication Check)",
-            "Basic Programming Syntax Check"
-        ],
-        "Round 2: DSA & Core CS": [
-            "Data Structures (Arrays, Linked Lists, Trees)",
-            "Algorithms (Sorting, Searching, DP)",
-            "DBMS Normalization & SQL",
-            "OS Concepts (Paging, Scheduling)"
-        ],
-        "Round 3: Tech Interview & Projects": [
-            "Resume Deep Dive",
-            `Tech Stack Questions (${Object.keys(skills).join(', ') || 'General'})`,
-            "System Design / LLD (if applicable)",
-            "Live Coding Challenge"
-        ],
-        "Round 4: Managerial & HR": [
-            "Cultural Fit Check",
-            "Salary Negotiation",
-            "Strength & Weakness discussion",
-            "Company Research Check"
-        ]
+        name: company,
+        size: isEnterprise ? "Enterprise" : "Startup / Mid-size",
+        industry: isEnterprise ? "Global Tech / Service" : "Product / Agile Tech",
+        focus: isEnterprise
+            ? "Structured Process: Strong emphasis on DSA, CS Fundamentals, and consistency."
+            : "Practical Skills: Emphasis on problem solving, building things, and adaptability."
     };
+};
+
+// Helper: Generate Smart Rounds
+const generateSmartRounds = (companyIntel, skills) => {
+    const isEnterprise = companyIntel.size === "Enterprise";
+    const primarySkill = Object.values(skills).flat()[0] || "Coding";
+
+    if (isEnterprise) {
+        return [
+            {
+                title: "Round 1: Screening & Aptitude",
+                details: ["Online Coding Test (2-3 DSA Medium)", "Quantitative Aptitude", "Verbal Ability"],
+                why: "To filter thousands of applicants efficiently."
+            },
+            {
+                title: "Round 2: Technical Deep Dive (DSA)",
+                details: ["Data Structures (Trees, Graphs, DP)", "Algorithms complexity analysis", "Core CS (OS, DBMS)"],
+                why: "To test your foundational problem-solving skills."
+            },
+            {
+                title: "Round 3: Advanced Technical / System Design",
+                details: [`System Design (HLD/LLD)`, `In-depth ${primarySkill} questions`, "Project discussion"],
+                why: "To see if you can build scalable systems."
+            },
+            {
+                title: "Round 4: Managerial & HR",
+                details: ["Behavioral questions (STAR method)", "Cultural fit check", "Salary negotiation"],
+                why: "To ensure you fit the team culture."
+            }
+        ];
+    } else {
+        return [
+            {
+                title: "Round 1: Practical Screening",
+                details: ["Take-home assignment", "Live pair programming", "Basic problem solving"],
+                why: "To prove you can actually write code."
+            },
+            {
+                title: "Round 2: Tech Stack Deep Dive",
+                details: [`In-depth ${primarySkill} implementation`, "Code review / Debugging", "Architecture discussion"],
+                why: "To verify your expertise in their specific stack."
+            },
+            {
+                title: "Round 3: Founder / Culture Fit",
+                details: ["Product thinking", "Ownership & Agility", "Vision alignment"],
+                why: "To see if you have the 'startup mindset'."
+            }
+        ];
+    }
 };
 
 export const analyzeJobDescription = (text, company, role) => {
@@ -155,7 +196,17 @@ export const analyzeJobDescription = (text, company, role) => {
     const score = calculateScore(text, skills, company, role);
     const plan = generatePlan(skills);
     const questions = generateQuestions(skills);
-    const checklist = generateChecklist(skills);
+
+    // New Logic
+    const companyIntel = getCompanyIntel(company || "Unknown");
+    // Generate Rounds (replacing old static checklist)
+    const smartRounds = generateSmartRounds(companyIntel, skills);
+
+    // Map smart rounds to old checklist format for backward compatibility if needed, 
+    // but better to use new structure. Let's keep old checklist for export, 
+    // but add new `rounds` property.
+    const checklist = {};
+    smartRounds.forEach(r => checklist[r.title] = r.details);
 
     return {
         id: crypto.randomUUID(),
@@ -166,7 +217,9 @@ export const analyzeJobDescription = (text, company, role) => {
         extractedSkills: skills,
         plan,
         questions,
-        checklist,
+        checklist, // Kept for legacy support locally
+        smartRounds, // New dynamic rounds
+        companyIntel, // New company data
         readinessScore: score,
         baseScore: score, // Store initial score
         skillConfidenceMap: {} // Init empty map for skill toggles

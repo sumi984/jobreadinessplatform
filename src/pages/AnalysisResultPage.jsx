@@ -261,53 +261,104 @@ ${data.questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
                 {/* Round Checklist & Questions */}
                 <div className="space-y-8">
                     {/* Checklist */}
-                    <div>
-                        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                            <CheckCircle2 className="w-6 h-6 text-purple-600" /> Round-wise Checklist
-                        </h2>
-                        <div className="space-y-3">
-                            {Object.entries(data.checklist).map(([round, items], idx) => (
-                                <Card key={idx} className="overflow-hidden">
-                                    <div className="bg-gray-50 px-4 py-2 border-b font-semibold text-gray-700 text-sm">
-                                        {round}
+                    {/* Round Rounds Timeline */}
+                    <div className="space-y-8">
+                        {/* Company Intel Card */}
+                        <Card className={cn(
+                            "border-l-4 shadow-sm",
+                            data.companyIntel?.size === 'Enterprise' ? "border-l-blue-600 bg-blue-50/50" : "border-l-orange-500 bg-orange-50/50"
+                        )}>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    {data.companyIntel?.size === 'Enterprise' ? <Target className="w-5 h-5 text-blue-600" /> : <BrainCircuit className="w-5 h-5 text-orange-500" />}
+                                    Company Intel
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-3">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500">Industry:</span>
+                                        <span className="font-medium text-gray-900">{data.companyIntel?.industry || 'Technology'}</span>
                                     </div>
-                                    <div className="p-3">
-                                        <ul className="space-y-2">
-                                            {items.map((item, i) => (
-                                                <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                                                    <div className="min-w-[16px] mt-0.5 w-4 h-4 rounded border border-gray-300" />
-                                                    {item}
-                                                </li>
-                                            ))}
-                                        </ul>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500">Size Category:</span>
+                                        <Badge variant="outline" className={data.companyIntel?.size === 'Enterprise' ? "bg-blue-100 text-blue-800" : "bg-orange-100 text-orange-800"}>
+                                            {data.companyIntel?.size || 'Unknown'}
+                                        </Badge>
                                     </div>
-                                </Card>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Questions */}
-                    <div>
-                        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                            <ClipboardList className="w-6 h-6 text-orange-600" /> Likely Interview Questions
-                        </h2>
-                        <Card>
-                            <CardContent className="p-0">
-                                <ul className="divide-y divide-gray-100">
-                                    {data.questions.map((q, idx) => (
-                                        <li key={idx} className="p-4 flex gap-3 hover:bg-gray-50 transition-colors">
-                                            <span className="text-orange-500 font-bold text-sm">Q{idx + 1}.</span>
-                                            <span className="text-gray-700 text-sm font-medium">{q}</span>
-                                        </li>
-                                    ))}
-                                </ul>
+                                    <div className="bg-white/60 p-3 rounded-md text-sm text-gray-700 italic border border-gray-100">
+                                        "{data.companyIntel?.focus}"
+                                    </div>
+                                </div>
                             </CardContent>
                         </Card>
+
+                        {/* Smart Rounds Timeline */}
+                        <div>
+                            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <CheckCircle2 className="w-6 h-6 text-purple-600" /> Interview Rounds
+                            </h2>
+
+                            <div className="relative pl-6 border-l-2 border-gray-200 space-y-8">
+                                {/* Fallback to old checklist if smartRounds missing (for old history items) */}
+                                {(data.smartRounds || []).map((round, idx) => (
+                                    <div key={idx} className="relative">
+                                        <span className="absolute -left-[33px] top-0 bg-white border-2 border-purple-600 w-4 h-4 rounded-full"></span>
+                                        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                                            <h3 className="font-bold text-gray-900 mb-1">{round.title}</h3>
+                                            <p className="text-xs text-purple-600 font-medium mb-3 uppercase tracking-wider">
+                                                Why: {round.why}
+                                            </p>
+                                            <ul className="space-y-2">
+                                                {round.details.map((item, i) => (
+                                                    <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                                                        <div className="min-w-[4px] mt-1.5 w-1 h-1 rounded-full bg-gray-400" />
+                                                        {item}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {/* DEMO MODE DISCLAIMER */}
+                                <div className="pt-4 text-center">
+                                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-500">
+                                        Demo Mode: Company intel generated heuristically.
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Fallback for old history items without smartRounds */}
+                            {!data.smartRounds && (
+                                <div className="text-gray-500 text-sm italic">
+                                    Use a new analysis to see the upgraded Round Mapping engine.
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Questions */}
+                        <div>
+                            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <ClipboardList className="w-6 h-6 text-orange-600" /> Likely Interview Questions
+                            </h2>
+                            <Card>
+                                <CardContent className="p-0">
+                                    <ul className="divide-y divide-gray-100">
+                                        {data.questions.map((q, idx) => (
+                                            <li key={idx} className="p-4 flex gap-3 hover:bg-gray-50 transition-colors">
+                                                <span className="text-orange-500 font-bold text-sm">Q{idx + 1}.</span>
+                                                <span className="text-gray-700 text-sm font-medium">{q}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </CardContent>
+                            </Card>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    );
+            );
 };
 
-export default AnalysisResultPage;
+            export default AnalysisResultPage;
