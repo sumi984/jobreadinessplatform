@@ -137,6 +137,11 @@ ${data.questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
                     )}>
                         <Copy className="w-4 h-4 mr-2" /> Plan
                     </Button>
+                    <Button variant="outline" size="sm" onClick={() => copyToClipboard(
+                        Object.entries(data.checklist).map(([r, items]) => `${r}:\n${items.map(i => ` - ${i}`).join('\n')}`).join('\n\n'), "Checklist"
+                    )}>
+                        <Copy className="w-4 h-4 mr-2" /> Checklist
+                    </Button>
                     <Button variant="outline" size="sm" onClick={() => copyToClipboard(data.questions.join('\n'), "Questions")}>
                         <Copy className="w-4 h-4 mr-2" /> Questions
                     </Button>
