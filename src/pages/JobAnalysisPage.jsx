@@ -20,6 +20,11 @@ const JobAnalysisPage = () => {
     const handleAnalyze = () => {
         if (!jdText.trim()) return;
 
+        if (jdText.length < 200) {
+            const proceed = window.confirm("This JD is quite short (< 200 chars) and might not yield accurate results. Do you want to try anyway?");
+            if (!proceed) return;
+        }
+
         const result = analyzeJobDescription(jdText, company, role);
         saveAnalysis(result);
         navigate(`/app/analysis/${result.id}`);
