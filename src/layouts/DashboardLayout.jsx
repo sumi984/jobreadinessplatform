@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, CheckSquare, Library, User, LogOut } from 'lucide-react';
+import { LayoutDashboard, BookOpen, CheckSquare, Library, User, LogOut, Sparkles } from 'lucide-react';
 
 const DashboardLayout = () => {
     return (
@@ -13,6 +13,7 @@ const DashboardLayout = () => {
 
                 <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
                     <NavItem to="/app" end icon={<LayoutDashboard size={20} />}>Dashboard</NavItem>
+                    <NavItem to="/app/analysis" icon={<Sparkles size={20} />}>JD Analyzer</NavItem>
                     <NavItem to="/app/practice" icon={<BookOpen size={20} />}>Practice</NavItem>
                     <NavItem to="/app/assessments" icon={<CheckSquare size={20} />}>Assessments</NavItem>
                     <NavItem to="/app/resources" icon={<Library size={20} />}>Resources</NavItem>

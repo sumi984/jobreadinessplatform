@@ -31,7 +31,8 @@ const mockRadarData = [
 const CircularProgress = ({ value, size = 180, strokeWidth = 15 }) => {
     const radius = (size - strokeWidth) / 2;
     const circumference = radius * 2 * Math.PI;
-    const offset = circumference - (value / 100) * circumference;
+    const clampedValue = Math.min(100, Math.max(0, value));
+    const offset = circumference - (clampedValue / 100) * circumference;
 
     return (
         <div className="relative flex flex-col items-center justify-center">
@@ -59,7 +60,7 @@ const CircularProgress = ({ value, size = 180, strokeWidth = 15 }) => {
                 />
             </svg>
             <div className="absolute flex flex-col items-center text-center">
-                <span className="text-4xl font-bold text-gray-900">{value}/100</span>
+                <span className="text-4xl font-bold text-gray-900">{clampedValue}/100</span>
                 <span className="text-sm text-gray-500 font-medium">Readiness Score</span>
             </div>
         </div>
@@ -67,6 +68,20 @@ const CircularProgress = ({ value, size = 180, strokeWidth = 15 }) => {
 };
 
 export const Dashboard = () => {
+    // -------------------------------------------------------------------------
+    // VERIFICATION SETTINGS
+    // Change these values to verify the UI logic
+    // -------------------------------------------------------------------------
+    const readinessScore = 72; // Try modifying this to 150 or -20 to test clamping
+
+    const practiceProgress = {
+        topic: 'Dynamic Programming',
+        completed: 3,
+        total: 10,
+        isAllComplete: false // Set this to true to test "All topics completed" state
+    };
+    // -------------------------------------------------------------------------
+
     return (
         <div className="p-6 space-y-6 max-w-7xl mx-auto">
             <div className="mb-6">
@@ -80,7 +95,8 @@ export const Dashboard = () => {
                     <h3 className="text-lg font-semibold text-gray-700 mb-6 flex items-center gap-2">
                         <Target className="w-5 h-5 text-indigo-600" /> Overall Readiness
                     </h3>
-                    <CircularProgress value={72} />
+                    {/* Pass a value > 100 or < 0 to test clamping */}
+                    <CircularProgress value={readinessScore} />
                 </Card>
 
                 {/* Skill Breakdown (Radar Chart) */}
@@ -116,18 +132,34 @@ export const Dashboard = () => {
                             <BookOpen className="w-5 h-5 text-blue-600" /> Continue Practice
                         </h3>
                         <p className="text-sm text-gray-500 mb-4">Pick up where you left off.</p>
-                        <div className="bg-blue-50 p-4 rounded-lg mb-4 text-left">
-                            <p className="text-sm font-medium text-blue-800 mb-1">Topic: Dynamic Programming</p>
-                            <div className="flex justify-between text-xs text-blue-600 mb-2">
-                                <span>3/10 Completed</span>
-                                <span>30%</span>
+
+                        {practiceProgress.isAllComplete ? (
+                            <div className="bg-green-50 p-4 rounded-lg mb-4 text-center border border-green-100">
+                                <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                                <p className="text-sm font-medium text-green-800">All topics completed!</p>
+                                <p className="text-xs text-green-600 mt-1">Great job! You are ready for assessments.</p>
                             </div>
-                            <Progress value={30} className="h-2 bg-blue-200" />
-                        </div>
+                        ) : (
+                            <div className="bg-blue-50 p-4 rounded-lg mb-4 text-left">
+                                <p className="text-sm font-medium text-blue-800 mb-1">Topic: {practiceProgress.topic}</p>
+                                <div className="flex justify-between text-xs text-blue-600 mb-2">
+                                    <span>{practiceProgress.completed}/{practiceProgress.total} Completed</span>
+                                    <span>{Math.round((practiceProgress.completed / practiceProgress.total) * 100)}%</span>
+                                </div>
+                                <Progress value={(practiceProgress.completed / practiceProgress.total) * 100} className="h-2 bg-blue-200" />
+                            </div>
+                        )}
                     </div>
-                    <Button className="w-full justify-center gap-2">
-                        <Play className="w-4 h-4" /> Continue
-                    </Button>
+
+                    {practiceProgress.isAllComplete ? (
+                        <Button className="w-full justify-center gap-2" variant="outline">
+                            <CheckCircle className="w-4 h-4" /> Review Topics
+                        </Button>
+                    ) : (
+                        <Button className="w-full justify-center gap-2">
+                            <Play className="w-4 h-4" /> Continue
+                        </Button>
+                    )}
                 </Card>
 
                 {/* Weekly Goals */}

@@ -7,6 +7,8 @@ import PracticePage from './pages/PracticePage';
 import AssessmentsPage from './pages/AssessmentsPage';
 import ResourcesPage from './pages/ResourcesPage';
 import ProfilePage from './pages/ProfilePage';
+import JobAnalysisPage from './pages/JobAnalysisPage';
+import AnalysisResultPage from './pages/AnalysisResultPage';
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
         {/* Protected Dashboard Routes */}
         <Route path="/app" element={<DashboardLayout />}>
           <Route index element={<Dashboard />} />
+          <Route path="analysis" element={<JobAnalysisPage />} />
+          <Route path="analysis/:id" element={<AnalysisResultPage />} />
           <Route path="practice" element={<PracticePage />} />
           <Route path="assessments" element={<AssessmentsPage />} />
           <Route path="resources" element={<ResourcesPage />} />
